@@ -29,6 +29,7 @@ public class SignIn extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_in);
+        getSupportActionBar().setTitle("By Your Side");
 
         emailText = findViewById(R.id.emailText);
         passwordText = findViewById(R.id.passwordText);

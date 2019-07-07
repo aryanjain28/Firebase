@@ -7,15 +7,30 @@
     tools:context=".WelcomeActivity">
 
     <TextView
+        android:id="@+id/listEmptyMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginBottom="14dp"
+        android:foregroundGravity="center_horizontal"
+        android:gravity="center"
+        android:text="Only you are online currently"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/gettingLocations"
+        app:layout_constraintStart_toStartOf="@+id/gettingLocations"
+        app:layout_constraintTop_toBottomOf="@+id/gettingList" />
+
+    <TextView
         android:id="@+id/gettingLocations"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="43dp"
+        android:layout_marginBottom="95dp"
         android:text="getting online users locations..."
         android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/progressBar2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/gettingList" />
+        app:layout_constraintTop_toBottomOf="@+id/listEmptyMessage" />
 
     <ProgressBar
         android:id="@+id/listprogressBar"
@@ -28,6 +43,7 @@
         android:indeterminateTint="@color/design_default_color_primary"
         android:indeterminateTintMode="src_atop"
         android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/gettingList"
         app:layout_constraintStart_toStartOf="@+id/gettingList"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -35,8 +51,10 @@
         android:id="@+id/gettingList"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:text="Getting list.."
         android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/listEmptyMessage"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/listprogressBar" />
@@ -50,7 +68,8 @@
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/progressBar2" />
 
     <ProgressBar
         android:id="@+id/progressBar2"
@@ -62,7 +81,8 @@
         android:indeterminateTintMode="src_atop"
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/onlineMessage"
-        app:layout_constraintStart_toStartOf="@+id/onlineMessage" />
+        app:layout_constraintStart_toStartOf="@+id/onlineMessage"
+        app:layout_constraintTop_toBottomOf="@+id/gettingLocations" />
 
     <LinearLayout
         android:id="@+id/linearLayout"

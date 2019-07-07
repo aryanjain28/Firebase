@@ -34,7 +34,7 @@ public class SignUp extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
-
+        getSupportActionBar().setTitle("By Your Side");
         emailText = findViewById(R.id.emailText);
         confirmPasswordText = findViewById(R.id.confirmPasswordText);
         passwordText = findViewById(R.id.passwordText);
@@ -91,7 +91,7 @@ public class SignUp extends AppCompatActivity {
     public void updateUI(FirebaseUser u){
         if(u == null)
             return;
-        Intent i = new Intent(this, WelcomeActivity.class);
+        Intent i = new Intent(this, Profile.class);
         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(i);
     }

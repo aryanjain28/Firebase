@@ -4,8 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
@@ -42,7 +40,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.io.Serializable;
@@ -60,12 +57,9 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
     private Date currentTime;
     private FusedLocationProviderClient mFusedLocationProviderClient;
     private UserLocation mUserLocation;
-    private ArrayList<UserLocation> userLocationArrayList;
     private ArrayList<String> userArrayList;
     private ArrayList<String> onlineDisplayArrayList;
     private ArrayList<GeoPoints> usersGeoPoints;
-    private GeoPoints geoPoints;
-    private ListenerRegistration  mUserListEventListener;
     private User user;
     private ProgressBar progressBar2;
     private TextView onlineMessage;
@@ -78,6 +72,8 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_welcome);
+
+        getSupportActionBar().setTitle("By Your Side");
 
         MobileAds.initialize(this, "ca-app-pub-5400968646818022~7963076388");
         currentTime = Calendar.getInstance().getTime();
@@ -109,8 +105,6 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
         if (USER_IS_ONLINE == 0)
             setUserIsOnline();
         Log.d(TAG, "Aryan User online");
-
-        inflateFragment();
     }
 
     //FIXED
@@ -154,11 +148,10 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                         if (task.isSuccessful()) {
                             if (task != null) {
                                 onlineDisplayArrayList = new ArrayList<>();
+                                onlineDisplayArrayList.clear();
                                 for (int i = 0; i < task.getResult().getDocuments().size(); i++) {
                                     String name = task.getResult().getDocuments().get(i).get("name").toString();
                                     String email = task.getResult().getDocuments().get(i).get("email").toString();
-                                    if (name == null) name = "Name not provided.";
-                                    if (email == null) name = "Email not provided.";
                                     onlineDisplayArrayList.add(name+"  "+"("+email+")");
                                     Log.d(TAG, "Aryans : success adding to list");
                                     listprogressBar.setVisibility(View.INVISIBLE);
@@ -166,9 +159,17 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
 
                                     getAllUsersCoordinates(task.getResult().getDocuments().get(i).getId().trim());
                                 }
+                                findViewById(R.id.listEmptyMessage).setVisibility(View.INVISIBLE);
                                 usersOnline = findViewById(R.id.usersOnline);
                                 ListAdapter adapter = new ArrayAdapter<>(WelcomeActivity.this, android.R.layout.simple_list_item_1, onlineDisplayArrayList);
                                 usersOnline.setAdapter(adapter);
+
+                                /*if (onlineDisplayArrayList.size() == 1) {
+                                    findViewById(R.id.listEmptyMessage).setVisibility(View.VISIBLE);
+                                }
+                                else {
+                                    findViewById(R.id.listEmptyMessage).setVisibility(View.INVISIBLE);
+                                }*/
                             }
                             Log.d(TAG, "onComplete: Success");
                         }
@@ -193,34 +194,43 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()){
-                            if (task != null){
-                                geoPoints = new GeoPoints();
+                        if (task.isSuccessful()) {
+                            if (task != null) {
+                                GeoPoints geoPoints = new GeoPoints();
                                 geoPoints.setGeoPoint(task.getResult().getGeoPoint("geoPoint"));
                                 usersGeoPoints.add(geoPoints);
-                                Log.d(TAG, "Aryan LAT : "+geoPoints.getGeoPoint().getLatitude());
-                                Log.d(TAG, "Aryan LONG : "+geoPoints.getGeoPoint().getLongitude());
+                                Log.d(TAG, "Aryan LAT : " + geoPoints.getGeoPoint().getLatitude());
+                                Log.d(TAG, "Aryan LONG : " + geoPoints.getGeoPoint().getLongitude());
                                 gettingLocations.setVisibility(View.INVISIBLE);
+
+                                if (!usersGeoPoints.isEmpty()) {
+                                    Log.d(TAG, "inflateFragment1: \n" +
+                                            usersGeoPoints.get(usersGeoPoints.size() - 1).getGeoPoint().getLatitude() + "\n" +
+                                            usersGeoPoints.get(usersGeoPoints.size() - 1).getGeoPoint().getLongitude());
+                                } else
+                                    Log.d(TAG, "inflateFragment1: EMPTY");
                             }
                         }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        gettingLocations.setVisibility(View.INVISIBLE);
+                        inflateFragment();
                     }
                 });
     }
 
     private void inflateFragment(){
-        UserMaps userMapsFragment = UserMaps.newInstance();
-        Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList("OnlineUsersGeoPoints", usersGeoPoints);
-        userMapsFragment.setArguments(bundle);
+        Log.d(TAG, "inflateFragment2: REACHED");
+        if (!usersGeoPoints.isEmpty()) {
+            Log.d(TAG, "inflateFragment2: \n" +
+                    usersGeoPoints.get(usersGeoPoints.size()-1).getGeoPoint().getLatitude() + "\n" +
+                    usersGeoPoints.get(usersGeoPoints.size()-1).getGeoPoint().getLongitude());
+        }
+        else
+            Log.d(TAG, "inflateFragment2: EMPTY");
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        UserMaps userMaps = UserMaps.newInstance(usersGeoPoints);
+        transaction.replace(R.id.fragment, userMaps);
         transaction.commit();
+        //usersGeoPoints.clear();
 
     }
 
@@ -381,11 +391,18 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
 
             case R.id.signOut :
                 setUserIsOffline();
+                findViewById(R.id.progressBar2).setVisibility(View.VISIBLE);
                 Toast.makeText(WelcomeActivity.this, u.getEmail()+" signed out",Toast.LENGTH_SHORT).show();
-                mAuth.signOut();
-                Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(intent);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mAuth.signOut();
+                        Intent intent = new Intent(WelcomeActivity.this, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        findViewById(R.id.progressBar2).setVisibility(View.VISIBLE);
+                    }
+                }, 2000);
                 break;
 
             case R.id.delete :
@@ -406,6 +423,7 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                                 @Override
                                 public void onComplete(@NonNull Task<Void> task) {
                                     if (task.isComplete()) {
+                                        mAuth.getCurrentUser().delete();
                                         Toast.makeText(WelcomeActivity.this, " ACCOUNT DELETED.", Toast.LENGTH_SHORT).show();
                                         Intent i = new Intent(WelcomeActivity.this, MainActivity.class);
                                         i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -433,7 +451,6 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                                         }
                                     }
                                 });
-                        mAuth.getCurrentUser().delete();
                         }
                     });
                     SpannableString s2 = new SpannableString("Dismiss");

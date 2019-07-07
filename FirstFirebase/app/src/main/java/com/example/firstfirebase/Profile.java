@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.util.Log;
 import android.view.ContextMenu;
 import android.view.MenuItem;
@@ -65,6 +66,8 @@ public class Profile extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
+
+        getSupportActionBar().setTitle("By Your Side");
 
         mAuth = FirebaseAuth.getInstance();
         message = findViewById(R.id.message);
@@ -339,5 +342,22 @@ public class Profile extends AppCompatActivity {
                             Toast.makeText(Profile.this, "Upload failed", Toast.LENGTH_SHORT).show();
                         }
                     });
+    }
+
+    @Override
+    public void onBackPressed() {
+        updateUI(mAuth.getCurrentUser());
+    }
+
+    public void updateUI(FirebaseUser u){
+        if(u == null)
+            return;
+        if (!name.getText().toString().trim().equals("") && !number.getText().toString().trim().equals("")) {
+            Intent i = new Intent(this, WelcomeActivity.class);
+            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(i);
+        }else {
+            Toast.makeText(Profile.this, "Please fill details.", Toast.LENGTH_SHORT).show();
+        }
     }
 }

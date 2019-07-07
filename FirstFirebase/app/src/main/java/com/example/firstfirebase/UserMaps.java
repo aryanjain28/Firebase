@@ -16,6 +16,8 @@ import android.view.ViewGroup;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 
@@ -27,19 +29,29 @@ public class UserMaps extends Fragment implements OnMapReadyCallback {
     private MapView user_map;
     ArrayList<GeoPoints> usersGeoPoints  = new ArrayList<>();
 
-    public static UserMaps newInstance(){
-        return new UserMaps();
+    public static UserMaps newInstance(ArrayList<GeoPoints> geoPoints){
+        UserMaps userMaps = new UserMaps();
+        Bundle bundle = new Bundle();
+        bundle.putParcelableArrayList("onlineUsers", geoPoints);
+        userMaps.setArguments(bundle);
+        return userMaps;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-               usersGeoPoints = getArguments().getParcelableArrayList("OnlineUsersGeoPoints");
-            Log.d(TAG, "onCreate: REACHED ARYAN1");
+
+        if (getArguments() != null){
+            usersGeoPoints.clear();
+            usersGeoPoints = getArguments().getParcelableArrayList("onlineUsers");
+            for (int i=0; i<usersGeoPoints.size(); i++) {
+                Log.d(TAG, "AryanJAIN "+i+" LAT" + usersGeoPoints.get(i).getGeoPoint().getLatitude());
+                Log.d(TAG, "AryanJAIN "+i+" LONG" + usersGeoPoints.get(i).getGeoPoint().getLongitude());
+            }
+            Log.d(TAG, "inflateFragment3: REACHED non-empty");
         }
         else {
-            Log.d(TAG, "onCreate: REACHED ARYAN2");
+            Log.d(TAG, "inflateFragment3: REACHED empty");
         }
     }
 
@@ -95,7 +107,13 @@ public class UserMaps extends Fragment implements OnMapReadyCallback {
 
     @Override
     public void onMapReady(GoogleMap map) {
+        for (int i=0; i<usersGeoPoints.size(); i++){
+            double x = usersGeoPoints.get(i).getGeoPoint().getLatitude();
+            double y = usersGeoPoints.get(i).getGeoPoint().getLongitude();
+            map.addMarker(new MarkerOptions().position(new LatLng(x,y)).title("ME"));
+        }
        // map.addMarker(new MarkerOptions().position(new LatLng(0,0)).title("Marker"));
+       // map.addMarker(new MarkerOptions().position(new LatLng(18.6468748,73.7564275)).title("ME"));
         if (ActivityCompat.checkSelfPermission(
                 getActivity(),
                 Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
