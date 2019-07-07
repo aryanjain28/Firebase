@@ -66,6 +66,7 @@ public class Profile extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
+        mAuth = FirebaseAuth.getInstance();
         message = findViewById(R.id.message);
         profilePic = findViewById(R.id.profilePic);
         name = findViewById(R.id.name);
@@ -76,7 +77,6 @@ public class Profile extends AppCompatActivity {
 
         mStorageRef = FirebaseStorage.getInstance().getReference("Uploads/");
         mFirestoreDatabase = FirebaseFirestore.getInstance();
-        mAuth = FirebaseAuth.getInstance();
 
         message.setVisibility(View.VISIBLE);
         chooseImage();
@@ -171,6 +171,8 @@ public class Profile extends AppCompatActivity {
                                 progressBar.setVisibility(View.VISIBLE);
 
                                 mUserDetailsMap = new HashMap<>();
+                                mUserDetailsMap.put("Email", mAuth.getCurrentUser().getEmail()+"");
+                                mUserDetailsMap.put("ID", mAuth.getCurrentUser().getUid()+"");
                                 mUserDetailsMap.put("Name", name.getText().toString().trim());
                                 mUserDetailsMap.put("Number", number.getText().toString().trim());
 
@@ -263,8 +265,8 @@ public class Profile extends AppCompatActivity {
                             if (task.getResult().exists()){
                                 name.setText(task.getResult().getData().get("Name").toString());
                                 number.setText(task.getResult().getData().get("Number").toString());
-                                Log.d(TAG, "DocumentSnapshot data: " + task.getResult().getData().get("Number"));
-                                Log.d(TAG, "DocumentSnapshot data: " + task.getResult().getData().get("Name"));
+                                //Log.d(TAG, "DocumentSnapshot data: " + task.getResult().getData().get("Number"));
+                                //Log.d(TAG, "DocumentSnapshot data: " + task.getResult().getData().get("Name"));
                                 progressBar.setVisibility(View.INVISIBLE);
                             }
                             else {

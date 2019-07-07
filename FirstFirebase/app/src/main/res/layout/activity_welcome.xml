@@ -6,27 +6,95 @@
     android:layout_height="match_parent"
     tools:context=".WelcomeActivity">
 
+    <TextView
+        android:id="@+id/gettingLocations"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="43dp"
+        android:text="getting online users locations..."
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/gettingList" />
+
+    <ProgressBar
+        android:id="@+id/listprogressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="13dp"
+        android:layout_marginTop="73dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/design_default_color_primary"
+        android:indeterminateTintMode="src_atop"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="@+id/gettingList"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/gettingList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Getting list.."
+        android:visibility="invisible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/listprogressBar" />
+
+    <TextView
+        android:id="@+id/onlineMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="239dp"
+        android:text="Getting you online"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressBar2"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:indeterminateTint="@color/design_default_color_primary"
+        android:indeterminateTintMode="src_atop"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toTopOf="@+id/onlineMessage"
+        app:layout_constraintStart_toStartOf="@+id/onlineMessage" />
+
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:id="@+id/linearLayout"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
 
         <TextView
             android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:clickable="true"
-            android:fontFamily="cursive"
-            android:text="Welcome"
-            android:textSize="120dp" />
+            android:text="Online Users"
+            android:textAlignment="center"
+            android:textSize="20dp"
+            android:textStyle="bold|italic" />
+
+        <ListView
+            android:id="@+id/usersOnline"
+            android:layout_width="match_parent"
+            android:layout_height="200dp" />
 
         <fragment
             android:id="@+id/fragment"
             android:name="com.example.firstfirebase.UserMaps"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            />
+            tools:layout="@layout/activity_user_maps" />
 
     </LinearLayout>
 

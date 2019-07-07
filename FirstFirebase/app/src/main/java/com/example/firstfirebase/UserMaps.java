@@ -25,28 +25,22 @@ import static com.example.firstfirebase.Constant.MAPVIEW_BUNDLE_KEY;
 public class UserMaps extends Fragment implements OnMapReadyCallback {
 
     private MapView user_map;
-    ArrayList<LatitudeLongitude> latitudeLongitudeArrayList;
-    ArrayList<String> usersList;
-    LatitudeLongitude l;
+    ArrayList<GeoPoints> usersGeoPoints  = new ArrayList<>();
 
     public static UserMaps newInstance(){
         return new UserMaps();
     }
 
-    public UserMaps() {
-        l=new LatitudeLongitude();
-    }
-
-    public UserMaps(ArrayList<LatitudeLongitude> latitudeLongitudeArrayList, ArrayList<String> usersList) {
-        this.latitudeLongitudeArrayList = latitudeLongitudeArrayList;
-        this.usersList = usersList;
-        latitudeLongitudeArrayList.get(0);
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate: "+l.getLatitude());
+        if (getArguments() != null) {
+               usersGeoPoints = getArguments().getParcelableArrayList("OnlineUsersGeoPoints");
+            Log.d(TAG, "onCreate: REACHED ARYAN1");
+        }
+        else {
+            Log.d(TAG, "onCreate: REACHED ARYAN2");
+        }
     }
 
     @Nullable
@@ -54,7 +48,6 @@ public class UserMaps extends Fragment implements OnMapReadyCallback {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.activity_user_maps, container, false);
         user_map = view.findViewById(R.id.user_map);
-
         initGoogleMap(savedInstanceState);
 
         return view;

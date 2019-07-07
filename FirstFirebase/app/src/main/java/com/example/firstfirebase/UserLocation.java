@@ -2,9 +2,7 @@ package com.example.firstfirebase;
 
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ServerTimestamp;
-import com.google.firebase.firestore.auth.User;
 
-import java.io.Serializable;
 import java.util.Date;
 
 public class UserLocation {
@@ -12,9 +10,9 @@ public class UserLocation {
     private @ServerTimestamp Date TimeStamp;
     private User user;
 
-    public UserLocation(GeoPoint GeoPoint, Date TimeStamp, User user) {
-        this.GeoPoint = GeoPoint;
-        this.TimeStamp = TimeStamp;
+    public UserLocation(com.google.firebase.firestore.GeoPoint geoPoint, Date timeStamp, User user) {
+        GeoPoint = geoPoint;
+        TimeStamp = timeStamp;
         this.user = user;
     }
 
@@ -37,11 +35,11 @@ public class UserLocation {
         TimeStamp = timeStamp;
     }
 
-    public com.google.firebase.firestore.auth.User getUser() {
+    public User getUser() {
         return user;
     }
 
-    public void setUser(com.google.firebase.firestore.auth.User user) {
+    public void setUser(User user) {
         this.user = user;
     }
 
@@ -50,7 +48,7 @@ public class UserLocation {
         return "UserLocation{" +
                 "GeoPoint=" + GeoPoint +
                 ", TimeStamp=" + TimeStamp +
-                ", User=" + user +
+                ", user=" + user +
                 '}';
     }
 }
