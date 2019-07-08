@@ -59,7 +59,6 @@ public class Profile extends AppCompatActivity {
     private StorageReference mStorageRef;
     private FirebaseFirestore mFirestoreDatabase;
     private FirebaseAuth mAuth;
-    private UserDetails mUserDetails;
     private Map<String, Object> mUserDetailsMap;
 
     @Override
@@ -76,7 +75,6 @@ public class Profile extends AppCompatActivity {
         number = findViewById(R.id.number);
         uploadButton = findViewById(R.id.uploadButton);
         progressBar = findViewById(R.id.progressBar);
-        mUserDetails = new UserDetails();
 
         mStorageRef = FirebaseStorage.getInstance().getReference("Uploads/");
         mFirestoreDatabase = FirebaseFirestore.getInstance();
@@ -355,6 +353,7 @@ public class Profile extends AppCompatActivity {
         if (!name.getText().toString().trim().equals("") && !number.getText().toString().trim().equals("")) {
             Intent i = new Intent(this, WelcomeActivity.class);
             i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            i.putExtra("USER_IS_ONLINE", 1);
             startActivity(i);
         }else {
             Toast.makeText(Profile.this, "Please fill details.", Toast.LENGTH_SHORT).show();

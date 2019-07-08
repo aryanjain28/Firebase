@@ -107,7 +107,15 @@
         <ListView
             android:id="@+id/usersOnline"
             android:layout_width="match_parent"
-            android:layout_height="200dp" />
+            android:layout_height="160dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Refresh activity after every few minutes."
+            android:gravity="center"
+            android:textSize="11dp"
+            />
 
         <fragment
             android:id="@+id/fragment"

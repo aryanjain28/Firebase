@@ -4,16 +4,21 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentTransaction;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.Settings;
 import android.text.SpannableString;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
@@ -49,7 +54,7 @@ import java.util.Date;
 
 public class WelcomeActivity extends AppCompatActivity implements Serializable {
 
-    private static int USER_IS_ONLINE = 0;
+    private static int USER_IS_ONLINE;
     private static final String TAG = "WelcomeActivity";
     private FirebaseAuth mAuth;
     private FirebaseFirestore mFireStoreDatabase;
@@ -59,7 +64,7 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
     private UserLocation mUserLocation;
     private ArrayList<String> userArrayList;
     private ArrayList<String> onlineDisplayArrayList;
-    private ArrayList<GeoPoints> usersGeoPoints;
+    private ArrayList<UserLocation> usersLocations;
     private User user;
     private ProgressBar progressBar2;
     private TextView onlineMessage;
@@ -84,37 +89,41 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
         gettingList = findViewById(R.id.gettingList);
         gettingLocations = findViewById(R.id.gettingLocations);
         userArrayList = new ArrayList<>();
-        usersGeoPoints = new ArrayList<>();
+        usersLocations = new ArrayList<>();
         mUserLocation = new UserLocation();
         mAuth = FirebaseAuth.getInstance();
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(WelcomeActivity.this);
         mFireStoreDatabase = FirebaseFirestore.getInstance();
 
-        if (mAuth.getCurrentUser() != null) {
-            Toast.makeText(this, "User signed in with email : " + mAuth.getCurrentUser().getEmail(), Toast.LENGTH_SHORT).show();
-            getCurrentUserDetails();
+        Log.d(TAG, "Aryan onCreate: CALLED");
+        if (checkLocationPermissionGranted()) {
+            if (checkLocationAndNetwork()) {
+                if (mAuth.getCurrentUser() != null) {
+                    Toast.makeText(this, "User signed in with email : " + mAuth.getCurrentUser().getEmail(), Toast.LENGTH_SHORT).show();
+                    getCurrentUserDetails();
+                    setUserIsOnline();
+                } else {
+                    Intent i = new Intent(WelcomeActivity.this, MainActivity.class);
+                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(i);
+                    return;
+                }
+            }
         }
-        else {
-            Intent i = new Intent(WelcomeActivity.this, MainActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(i);
-            return;
-        }
-
-        displayListOfUsersOnline();
-        if (USER_IS_ONLINE == 0)
-            setUserIsOnline();
-        Log.d(TAG, "Aryan User online");
     }
 
     //FIXED
     @Override
     protected void onRestart() {
         super.onRestart();
-        displayListOfUsersOnline();
-        if (USER_IS_ONLINE == 0) {
-            setUserIsOnline();
-            Log.d(TAG, "Aryan User online");
+        Log.d(TAG, "Aryan onRestart: Called");
+        if (checkLocationPermissionGranted()) {
+            if (checkLocationAndNetwork()) {
+                displayListOfUsersOnline();
+                if (USER_IS_ONLINE == 0) {
+                    setUserIsOnline();
+                }
+            }
         }
     }
 
@@ -123,7 +132,7 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
         super.onPause();
         if (USER_IS_ONLINE == 1) {
             setUserIsOffline();
-            Log.d(TAG, "Aryan User offline");
+            Log.d(TAG, "User offline");
         }
     }
 
@@ -133,10 +142,11 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
         super.onDestroy();
         if (USER_IS_ONLINE == 1) {
             setUserIsOffline();
-            Log.d(TAG, "Aryan User offline");
+            Log.d(TAG, "User offline");
         }
     }
 
+    //Step 1 : loop for getting a online list
     private void displayListOfUsersOnline(){
         listprogressBar.setVisibility(View.VISIBLE);
         gettingList.setVisibility(View.VISIBLE);
@@ -157,19 +167,12 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                                     listprogressBar.setVisibility(View.INVISIBLE);
                                     gettingList.setVisibility(View.INVISIBLE);
 
-                                    getAllUsersCoordinates(task.getResult().getDocuments().get(i).getId().trim());
+                                    getUserClass(task.getResult().getDocuments().get(i).getId().trim());
                                 }
                                 findViewById(R.id.listEmptyMessage).setVisibility(View.INVISIBLE);
                                 usersOnline = findViewById(R.id.usersOnline);
                                 ListAdapter adapter = new ArrayAdapter<>(WelcomeActivity.this, android.R.layout.simple_list_item_1, onlineDisplayArrayList);
                                 usersOnline.setAdapter(adapter);
-
-                                /*if (onlineDisplayArrayList.size() == 1) {
-                                    findViewById(R.id.listEmptyMessage).setVisibility(View.VISIBLE);
-                                }
-                                else {
-                                    findViewById(R.id.listEmptyMessage).setVisibility(View.INVISIBLE);
-                                }*/
                             }
                             Log.d(TAG, "onComplete: Success");
                         }
@@ -185,7 +188,24 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
         //return onlineDisplayArrayList;
     }
 
-    private void getAllUsersCoordinates(String ID){
+    //Step 2 : getting user class from USERS
+    private void getUserClass(final String ID){
+        DocumentReference userDetailRef = mFireStoreDatabase.collection("Users")
+                .document(ID);
+        userDetailRef.get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()){
+                            user = task.getResult().toObject(User.class);
+                            getAllUsersCoordinates(user, ID);
+                        }
+                    }
+                });
+    }
+
+    //Step 3 : setting UsersLocation ArrayList
+    private void getAllUsersCoordinates(final User user, String ID){
         gettingLocations.setVisibility(View.VISIBLE);
         final DocumentReference documentReference = mFireStoreDatabase.collection("UserLocations")
                 .document(ID);
@@ -196,42 +216,47 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
                         if (task.isSuccessful()) {
                             if (task != null) {
-                                GeoPoints geoPoints = new GeoPoints();
-                                geoPoints.setGeoPoint(task.getResult().getGeoPoint("geoPoint"));
-                                usersGeoPoints.add(geoPoints);
-                                Log.d(TAG, "Aryan LAT : " + geoPoints.getGeoPoint().getLatitude());
-                                Log.d(TAG, "Aryan LONG : " + geoPoints.getGeoPoint().getLongitude());
+
+                                UserLocation userLocation = new UserLocation();
+                                userLocation.setUser(user);
+                                userLocation.setGeoPoint(task.getResult().getGeoPoint("geoPoint"));
+                                usersLocations.add(userLocation);
+
+                                Log.d(TAG, "Aryan LAT : " + userLocation.getGeoPoint().getLatitude());
+                                Log.d(TAG, "Aryan LONG : " + userLocation.getGeoPoint().getLongitude());
                                 gettingLocations.setVisibility(View.INVISIBLE);
 
-                                if (!usersGeoPoints.isEmpty()) {
+                                if (!usersLocations.isEmpty()) {
                                     Log.d(TAG, "inflateFragment1: \n" +
-                                            usersGeoPoints.get(usersGeoPoints.size() - 1).getGeoPoint().getLatitude() + "\n" +
-                                            usersGeoPoints.get(usersGeoPoints.size() - 1).getGeoPoint().getLongitude());
+                                            usersLocations.get(usersLocations.size() - 1).getGeoPoint().getLatitude() + "\n" +
+                                            usersLocations.get(usersLocations.size() - 1).getGeoPoint().getLongitude());
                                 } else
                                     Log.d(TAG, "inflateFragment1: EMPTY");
+
+                                Log.d(TAG, "XXXXX: "+user.getName());
                             }
+
                         }
                         inflateFragment();
                     }
                 });
     }
 
+    //Steps 4 : inflation
     private void inflateFragment(){
         Log.d(TAG, "inflateFragment2: REACHED");
-        if (!usersGeoPoints.isEmpty()) {
+        if (!usersLocations.isEmpty()) {
             Log.d(TAG, "inflateFragment2: \n" +
-                    usersGeoPoints.get(usersGeoPoints.size()-1).getGeoPoint().getLatitude() + "\n" +
-                    usersGeoPoints.get(usersGeoPoints.size()-1).getGeoPoint().getLongitude());
+                    usersLocations.get(usersLocations.size()-1).getGeoPoint().getLatitude() + "\n" +
+                    usersLocations.get(usersLocations.size()-1).getGeoPoint().getLongitude());
         }
         else
             Log.d(TAG, "inflateFragment2: EMPTY");
 
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        UserMaps userMaps = UserMaps.newInstance(usersGeoPoints);
+        UserMaps userMaps = UserMaps.newInstance(usersLocations);
         transaction.replace(R.id.fragment, userMaps);
         transaction.commit();
-        //usersGeoPoints.clear();
-
     }
 
     private void setUserIsOffline() {
@@ -264,7 +289,8 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                             documentReference.set(user);
                             progressBar2.setVisibility(View.INVISIBLE);
                             onlineMessage.setVisibility(View.INVISIBLE);
-                            Toast.makeText(WelcomeActivity.this, "Online", Toast.LENGTH_SHORT).show();
+                         //   Toast.makeText(WelcomeActivity.this, "Online", Toast.LENGTH_SHORT).show();
+                            displayListOfUsersOnline();
                         }
                     }
                 })
@@ -371,7 +397,7 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.signout, menu);
-        MenuItem item = menu.getItem(2);
+        MenuItem item = menu.getItem(3);
         SpannableString s = new SpannableString("Delete Account");
         s.setSpan(new ForegroundColorSpan(Color.RED), 0, s.length(), 0);
         item.setTitle(s);
@@ -384,9 +410,16 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
         switch(item.getItemId()){
 
             case R.id.profile:
+                USER_IS_ONLINE = 0;
                 Intent i = new Intent(WelcomeActivity.this, Profile.class);
                 startActivity(i);
+                break;
+
+            case R.id.refresh:
                 USER_IS_ONLINE = 0;
+                Intent intent = new Intent(WelcomeActivity.this, WelcomeActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
                 break;
 
             case R.id.signOut :
@@ -402,7 +435,7 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
                         startActivity(intent);
                         findViewById(R.id.progressBar2).setVisibility(View.VISIBLE);
                     }
-                }, 2000);
+                }, 1000);
                 break;
 
             case R.id.delete :
@@ -467,4 +500,82 @@ public class WelcomeActivity extends AppCompatActivity implements Serializable {
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private boolean checkLocationPermissionGranted() {
+        boolean x = true;
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            handlePermissions(0);
+            Log.d(TAG, "Aryan: Reached2");
+            x = false;
+        }
+        return x;
+    }
+
+    private boolean checkLocationAndNetwork(){
+
+        boolean x = true;
+        LocationManager lm = (LocationManager)this.getSystemService(Context.LOCATION_SERVICE);
+        boolean gps_enabled = false;
+        boolean network_enabled = false;
+        try {
+            gps_enabled = lm.isProviderEnabled(LocationManager.GPS_PROVIDER);
+        } catch(Exception ex) {}
+
+        try {
+            network_enabled = lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+        } catch(Exception ex) {}
+
+        if(!gps_enabled && !network_enabled) {
+            handlePermissions(1);
+            x = false;
+        }
+    return x;
+    }
+
+    private void handlePermissions(int x){
+
+        SpannableString spannableString = new SpannableString("OK");
+        spannableString.setSpan(new ForegroundColorSpan(Color.BLACK), 0, spannableString.length(), 0);
+        switch (x){
+            case 0:
+                new AlertDialog.Builder(WelcomeActivity.this)
+                        .setCancelable(false)
+                        .setTitle("Location permission not provide")
+                        .setMessage("Location permission not provided, please tap OK below and grant location permission.")
+                        .setPositiveButton(spannableString, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                final Intent intent = new Intent();
+                                intent.setAction(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                intent.addCategory(Intent.CATEGORY_DEFAULT);
+                                intent.setData(Uri.fromParts("package",getPackageName(),null));
+                                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                               // intent.addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY);
+                              //  intent.addFlags(intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+                                WelcomeActivity.this.startActivity(intent);
+                            }
+                        })
+                        .show();
+                break;
+
+            case 1:
+                new AlertDialog.Builder(WelcomeActivity.this)
+                        .setCancelable(false)
+                        .setTitle("App needs location & network services.")
+                        .setMessage("Please turn on your location & internet and press OK below.")
+                        .setPositiveButton(spannableString, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface paramDialogInterface, int paramInt) {
+                                Intent intent = new Intent(WelcomeActivity.this, WelcomeActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                            }
+                        })
+                        .show();
+                break;
+        }
+
+    }
+
 }
