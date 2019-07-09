@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_marginStart="8dp"
-        android:layout_marginBottom="14dp"
+        android:layout_marginBottom="75dp"
         android:foregroundGravity="center_horizontal"
         android:gravity="center"
         android:text="Only you are online currently"
@@ -24,7 +24,7 @@
         android:id="@+id/gettingLocations"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="95dp"
+        android:layout_marginBottom="34dp"
         android:text="getting online users locations..."
         android:visibility="invisible"
         app:layout_constraintBottom_toTopOf="@+id/progressBar2"
@@ -63,12 +63,12 @@
         android:id="@+id/onlineMessage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="41dp"
         android:layout_marginBottom="239dp"
         android:text="Getting you online"
         android:visibility="invisible"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/gettingLocations"
         app:layout_constraintTop_toBottomOf="@+id/progressBar2" />
 
     <ProgressBar
@@ -112,10 +112,9 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Refresh activity after every few minutes."
             android:gravity="center"
-            android:textSize="11dp"
-            />
+            android:text="Refresh activity after every few minutes."
+            android:textSize="11dp" />
 
         <fragment
             android:id="@+id/fragment"

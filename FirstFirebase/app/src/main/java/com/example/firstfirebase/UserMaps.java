@@ -10,9 +10,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,12 +30,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Random;
 
 import static androidx.constraintlayout.widget.Constraints.TAG;
 import static com.example.firstfirebase.Constant.MAPVIEW_BUNDLE_KEY;
 
 public class UserMaps extends Fragment implements OnMapReadyCallback {
 
+    int x = 0;
     private MapView user_map;
     private GoogleMap googleMap;
     ArrayList<UserLocation> usersLocations  = new ArrayList<>();
@@ -109,17 +109,17 @@ public class UserMaps extends Fragment implements OnMapReadyCallback {
                 final double y = usersLocations.get(i).getGeoPoint().getLongitude();
 
                 MarkerOptions markerOptions = new MarkerOptions();
-                image = Bitmap.createScaledBitmap(
-                        BitmapFactory.decodeResource(getResources(), R.drawable.aryan),
+                /*image = Bitmap.createScaledBitmap(
+                        BitmapFactory.decodeResource(getResources(), selectImage()),
                         120,
                         120,
                         true
-                );
+                );*/
                 //addPaddingTopForBitmap(image, 10);
-                image.compress(Bitmap.CompressFormat.JPEG, 0, new ByteArrayOutputStream());
+                //image.compress(Bitmap.CompressFormat.JPEG, 0, new ByteArrayOutputStream());
 
                 markerOptions.position(new LatLng(x, y));
-                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(padBitmap(image)));
+                //markerOptions.icon(BitmapDescriptorFactory.fromBitmap(padBitmap(image)));
                 markerOptions.title(usersLocations.get(i).getUser().getName());
                 markerOptions.snippet(usersLocations.get(i).getUser().getEmail());
 
@@ -159,6 +159,16 @@ public class UserMaps extends Fragment implements OnMapReadyCallback {
                 new Paint(Paint.FILTER_BITMAP_FLAG));
 
         return paddedBitmap;
+    }
+
+    public int selectImage(){
+        switch (new Random().nextInt(5)){
+            case 1 : return R.drawable.arrow;
+            case 2: return R.drawable.bird;
+            case 3: return R.drawable.emoji;
+            case 4: return R.drawable.employee;
+            default:return R.drawable.doraemon;
+        }
     }
 
     @Override

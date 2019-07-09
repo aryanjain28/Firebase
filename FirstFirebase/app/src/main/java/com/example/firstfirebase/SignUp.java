@@ -34,7 +34,7 @@ public class SignUp extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
-        getSupportActionBar().setTitle("By Your Side");
+        getSupportActionBar().setTitle(R.string.app_name);
         emailText = findViewById(R.id.emailText);
         confirmPasswordText = findViewById(R.id.confirmPasswordText);
         passwordText = findViewById(R.id.passwordText);

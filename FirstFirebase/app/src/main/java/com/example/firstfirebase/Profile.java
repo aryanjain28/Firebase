@@ -66,7 +66,7 @@ public class Profile extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_profile);
 
-        getSupportActionBar().setTitle("By Your Side");
+        getSupportActionBar().setTitle(R.string.app_name);
 
         mAuth = FirebaseAuth.getInstance();
         message = findViewById(R.id.message);
@@ -340,23 +340,5 @@ public class Profile extends AppCompatActivity {
                             Toast.makeText(Profile.this, "Upload failed", Toast.LENGTH_SHORT).show();
                         }
                     });
-    }
-
-    @Override
-    public void onBackPressed() {
-        updateUI(mAuth.getCurrentUser());
-    }
-
-    public void updateUI(FirebaseUser u){
-        if(u == null)
-            return;
-        if (!name.getText().toString().trim().equals("") && !number.getText().toString().trim().equals("")) {
-            Intent i = new Intent(this, WelcomeActivity.class);
-            i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            i.putExtra("USER_IS_ONLINE", 1);
-            startActivity(i);
-        }else {
-            Toast.makeText(Profile.this, "Please fill details.", Toast.LENGTH_SHORT).show();
-        }
     }
 }
