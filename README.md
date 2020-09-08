@@ -7,5 +7,5 @@ Application uses Google Firebase for its data collection and Google maps api key
 
 
 <br>
-<p align="center"><img width="460" src="https://raw.githubusercontent.com/aryanjain28/Firebase/master/Screenshot.jpg"></p>
+<p align="center"><img width="170" src="https://raw.githubusercontent.com/aryanjain28/Firebase/master/Screenshot.jpg"></p>
 <br>
